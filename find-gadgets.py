@@ -74,7 +74,9 @@ class Gadgetizer:
                 if gadget_filter.search(gadget.simpleString()):
                     # not sure how to filter large ret sizes within ropper's search functionality, so doing it here
                     continue
-                tree.add(f"{escape(str(gadget)).replace(':', '  #', 1)} :: {file}")
+                dquote = '"'
+                tree.add(f"{escape(str(gadget)).replace(':', ')  #', 1).replace('0x', 'rop += pack('+dquote+'<L'+dquote+', 0x', 1)} :: {file}")
+                #tree.add(f"{escape(str(gadget))} :: {file}")
                 self.addresses.add(hex(gadget.address))
 
         return tree
@@ -91,7 +93,10 @@ class Gadgetizer:
         ]
 
         tree.add(self._search_gadget("write-what-where", ["mov [???], ???;"]))
+        tree.add(self._search_gadget("write-what-where-offset", ["mov [???????], ???;"]))
         tree.add(self._search_gadget("pointer deref", ["mov ???, [???];"]))
+        tree.add(self._search_gadget("pointer deref-offset", ["mov ???, [???????];"]))
+        tree.add(self._search_gadget("TODO check for COP from rp++, push eax; call edi;", ["push ???;.*call ???;"]))
         tree.add(
             self._search_gadget(
                 "swap register",
@@ -106,6 +111,7 @@ class Gadgetizer:
         )
         tree.add(self._search_gadget("negate register", [f"neg {reg_prefix}??;"]))
         tree.add(self._search_gadget("xor register", [f"xor {reg_prefix}??, 0x????????"]))
+        tree.add(self._search_gadget("shift register", [f"sh? {reg_prefix}??"]))
         tree.add(self._search_gadget("push", [f"push {reg_prefix}??;"]))
         tree.add(self._search_gadget("pushad", [f"pushad;"]))
         tree.add(self._search_gadget("pop", [f"pop {reg_prefix}??;"]))
